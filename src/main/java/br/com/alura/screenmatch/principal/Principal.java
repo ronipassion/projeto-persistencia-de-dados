@@ -2,8 +2,8 @@ package br.com.alura.screenmatch.principal;
 
 import br.com.alura.screenmatch.model.DadosSerie;
 import br.com.alura.screenmatch.model.DadosTemporada;
-import br.com.alura.screenmatch.model.Episodio;
-import br.com.alura.screenmatch.model.Series;
+import br.com.alura.screenmatch.model.Serie;
+import br.com.alura.screenmatch.repository.SerieRepository;
 import br.com.alura.screenmatch.service.ConsumoApi;
 import br.com.alura.screenmatch.service.ConverteDados;
 
@@ -18,6 +18,11 @@ public class Principal {
     private final String ENDERECO = "https://www.omdbapi.com/?t=";
     private final String API_KEY = "&apikey=6585022c";
     private List<DadosSerie> dadosSeries = new ArrayList<>();
+    private SerieRepository repositorio;
+
+    public Principal(SerieRepository repositorio) {
+        this.repositorio = repositorio;
+    }
 
     public void exibeMenu() {
         var opcao = -1;
@@ -55,8 +60,10 @@ public class Principal {
 
     private void buscarSerieWeb() {
         DadosSerie dados = getDadosSerie();
+        //dadosSeries.add(dados);
+        Serie serie = new Serie(dados);
+        repositorio.save(serie);
         System.out.println(dados);
-        dadosSeries.add(dados);
     }
 
     private DadosSerie getDadosSerie() {
@@ -80,13 +87,10 @@ public class Principal {
     }
 
     private void listarSeriesBuscadas() {
-        List<Series> series = new ArrayList<>();
+        List<Serie> series = repositorio.findAll();
         try {
-            series = dadosSeries.stream()
-                    .map(d -> new Series(d))
-                    .collect(Collectors.toList());
             series.stream()
-                    .sorted(Comparator.comparing(Series::getGenero))
+                    .sorted(Comparator.comparing(Serie::getGenero))
                     .forEach(System.out::println);
         } catch (IllegalArgumentException e) {
             System.out.println("Erro ao listas as séries" + e.getLocalizedMessage());
